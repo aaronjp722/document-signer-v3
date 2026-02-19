@@ -923,17 +923,22 @@ function createSignatureBox(type) {
     box.dataset.required = "true";
   }
 
-  if (type === 'digit') {
-    box.innerText = "";
-    box.contentEditable = true;
-    box.dataset.validation = "digit";
-    box.style.width = "16px";
-    box.style.height = "18px";
-    box.style.padding = "0";
-    box.style.textAlign = "center";
-    box.style.fontSize = "14px";
-    box.style.lineHeight = "18px";
-  }
+  if (type === "digit") {
+  box.innerText = "";
+  box.contentEditable = true;
+
+  box.dataset.validation = "digit";
+  box.dataset.secure = "true";      // 🔒 allows SSN protection later
+  box.dataset.maxlength = "1";      // enforce 1 digit
+
+  box.style.width = "16px";
+  box.style.height = "18px";
+  box.style.padding = "0";
+  box.style.textAlign = "center";
+  box.style.fontSize = "14px";
+  box.style.lineHeight = "18px";
+}
+
 
   if (type === 'ein') {
     box.innerText = "XX-XXXXXXX";
@@ -944,16 +949,22 @@ function createSignatureBox(type) {
   }
 
   // input validations
-  box.addEventListener("input", () => {
-    if (box.dataset.validation === "digit") {
-      box.innerText = box.innerText.replace(/[^0-9]/g, "").slice(0, 1);
-    }
-    if (box.dataset.validation === "ein") {
-      let value = box.innerText.replace(/\D/g, "");
-      if (value.length > 2) value = value.slice(0, 2) + "-" + value.slice(2, 9);
-      box.innerText = value.slice(0, 10);
-    }
-  });
+ box.addEventListener("input", () => {
+
+  if (box.dataset.validation === "digit") {
+    let value = box.innerText.replace(/\D/g, "");
+    value = value.slice(0, Number(box.dataset.maxlength || 1));
+    box.innerText = value;
+  }
+
+  if (box.dataset.validation === "ein") {
+    let value = box.innerText.replace(/\D/g, "");
+    if (value.length > 2) value = value.slice(0, 2) + "-" + value.slice(2, 9);
+    box.innerText = value.slice(0, 10);
+  }
+
+});
+
 
 
     
@@ -2089,6 +2100,7 @@ loadTemplatesFromDB();
 </body>
 
 </html>
+
 
 
 
