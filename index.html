@@ -1001,16 +1001,19 @@ function createSSNBoxes() {
       pageEl.appendChild(box);
 
       const field = {
-        id: crypto.randomUUID(),
-        signer: currentSigner,
-        type: "digit",
-        value: "",
-        page: Number(pageEl.dataset.page),
-        xPct: currentXPct,
-        yPct: startYPct,
-        wPct: digitWidthPct,
-        hPct: digitHeightPct
-      };
+  id: crypto.randomUUID(),
+  signer: currentSigner,
+  type: "digit",
+  secure: true,
+  store: "edge_only",
+  value: "",
+  page: Number(pageEl.dataset.page),
+  xPct: currentXPct,
+  yPct: startYPct,
+  wPct: digitWidthPct,
+  hPct: digitHeightPct
+};
+
 
       box.__field = field;
       fieldList.push(field);
@@ -1421,7 +1424,9 @@ if (signers.length) {
 // 2.7 INSERT DOCUMENT FIELDS
 // =========================
 if (fieldList.length) {
-  const fieldRows = fieldList.map(f => ({
+  const fieldRows = fieldList
+  .filter(f => !f.secure)
+  .map(f => ({
     doc_id: docId,
     signer_order: f.signer,
     field_type: f.type,
@@ -1435,6 +1440,8 @@ if (fieldList.length) {
     locked: false,
     z_index: 1
   }));
+
+
 
   const { error: fieldError } = await sb
     .from("document_fields")
@@ -1487,8 +1494,7 @@ const payload = {
   y_pct: f.yPct,
   w_pct: f.wPct,
   h_pct: f.hPct,
-
-  // ✅ DOCUSIGN LEGAL FLAGS
+  secure: !!f.secure,
   required: true,
   locked: docType === "w9"
 })),
@@ -1555,6 +1561,7 @@ await fetch(MAKE_WEBHOOK_URL, {
   signer4_name: signerRows[3]?.name || null,
   signer4_email: signerRows[3]?.email || null,
   signer4_token: signerRows[3]?.token || null,
+     const safeFields = fieldList.filter(f => !f.secure);
 
   // =============================
   // FLAT FIELD EXPORT (MAX 50 SAFE)
@@ -2089,5 +2096,6 @@ updateSignerVisibility();
 </body>
 
 </html>
+
 
 
