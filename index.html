@@ -954,29 +954,7 @@ function createSignatureBox(type) {
     }
   });
 
-  // drag start
-  box.addEventListener('mousedown', (e) => {
-    if (e.target.classList.contains('resize-handle')) return;
-    e.stopPropagation();
-    activeDrag = box;
-    const rect = box.getBoundingClientRect();
-    box.dataset.offsetX = e.clientX - rect.left;
-    box.dataset.offsetY = e.clientY - rect.top;
-  });
 
-  // skip resize handles for checkbox/consent/digit
-  if (["checkbox","consent","digit"].includes(type)) return box;
-
-  // resize handles
-  ['t','b','l','r','tl','tr','bl','br'].forEach(pos => {
-    const h = document.createElement('div');
-    h.className = `resize-handle resize-${pos}`;
-    h.dataset.direction = pos;
-    box.appendChild(h);
-  });
-
-  return box;
-}
     
 
 
@@ -2111,4 +2089,5 @@ updateSignerVisibility();
 </body>
 
 </html>
+
 
