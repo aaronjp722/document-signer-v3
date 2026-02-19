@@ -886,30 +886,98 @@ function createSignatureBox(type) {
   box.className = 'signature-box';
   box.dataset.type = type;
   box.dataset.signer = currentSigner;
-box.addEventListener('click', (e) => {
-  e.stopPropagation();
-  selectBox(box);
-});
 
-box.addEventListener("input", () => {
+  // click select
+  box.addEventListener('click', (e) => {
+    e.stopPropagation();
+    selectBox(box);
+  });
 
-  /* SINGLE DIGIT */
-  if (box.dataset.validation === "digit") {
-    box.innerText = box.innerText.replace(/[^0-9]/g, "").slice(0, 1);
+  // field behavior
+  if (type === 'text') {
+    box.innerText = `Text – Signer ${currentSigner}`;
+    box.contentEditable = true;
+    box.style.minWidth = '160px';
   }
 
-  /* EIN AUTO-FORMAT */
-  if (box.dataset.validation === "ein") {
-    let value = box.innerText.replace(/\D/g, "");
+  if (type === 'name') {
+    const nameInput = document.getElementById(`signer${currentSigner}_name`);
+    box.innerText = nameInput?.value || `Name – Signer ${currentSigner}`;
+    box.contentEditable = false;
+    box.style.minWidth = '160px';
+  }
 
-    if (value.length > 2) {
-      value = value.slice(0, 2) + "-" + value.slice(2, 9);
+  if (type === 'checkbox') {
+    box.innerText = "☐";
+    box.style.width = "14px";
+    box.style.height = "14px";
+    box.style.padding = "0";
+  }
+
+  if (type === 'consent') {
+    box.innerText = "☐";
+    box.style.width = "14px";
+    box.style.height = "14px";
+    box.style.padding = "0";
+    box.dataset.required = "true";
+  }
+
+  if (type === 'digit') {
+    box.innerText = "";
+    box.contentEditable = true;
+    box.dataset.validation = "digit";
+    box.style.width = "16px";
+    box.style.height = "18px";
+    box.style.padding = "0";
+    box.style.textAlign = "center";
+    box.style.fontSize = "14px";
+    box.style.lineHeight = "18px";
+  }
+
+  if (type === 'ein') {
+    box.innerText = "XX-XXXXXXX";
+    box.contentEditable = true;
+    box.dataset.validation = "ein";
+    box.style.minWidth = "140px";
+    box.style.textAlign = "center";
+  }
+
+  // input validations
+  box.addEventListener("input", () => {
+    if (box.dataset.validation === "digit") {
+      box.innerText = box.innerText.replace(/[^0-9]/g, "").slice(0, 1);
     }
+    if (box.dataset.validation === "ein") {
+      let value = box.innerText.replace(/\D/g, "");
+      if (value.length > 2) value = value.slice(0, 2) + "-" + value.slice(2, 9);
+      box.innerText = value.slice(0, 10);
+    }
+  });
 
-    box.innerText = value.slice(0, 10);
-  }
+  // drag start
+  box.addEventListener('mousedown', (e) => {
+    if (e.target.classList.contains('resize-handle')) return;
+    e.stopPropagation();
+    activeDrag = box;
+    const rect = box.getBoundingClientRect();
+    box.dataset.offsetX = e.clientX - rect.left;
+    box.dataset.offsetY = e.clientY - rect.top;
+  });
 
-});
+  // skip resize handles for checkbox/consent/digit
+  if (["checkbox","consent","digit"].includes(type)) return box;
+
+  // resize handles
+  ['t','b','l','r','tl','tr','bl','br'].forEach(pos => {
+    const h = document.createElement('div');
+    h.className = `resize-handle resize-${pos}`;
+    h.dataset.direction = pos;
+    box.appendChild(h);
+  });
+
+  return box;
+}
+    
 
 
 /* =========================================
@@ -991,82 +1059,6 @@ function selectBox(box) {
 }
 
 
- /* ================================
-   LEGAL FIELD TYPE BEHAVIOR
-================================ */
-
-if (type === 'text') {
-  box.innerText = `Text – Signer ${currentSigner}`;
-  box.contentEditable = true;
-  box.style.minWidth = '160px';
-}
-
-if (type === 'name') {
-  const nameInput = document.getElementById(`signer${currentSigner}_name`);
-  box.innerText = nameInput?.value || `Name – Signer ${currentSigner}`;
-  box.contentEditable = false;
-  box.style.minWidth = '160px';
-}
-
-if (type === 'email') {
-  box.innerText = "Email";
-  box.contentEditable = true;
-  box.dataset.validation = "email";
-}
-
-if (type === 'phone') {
-  box.innerText = "Phone";
-  box.contentEditable = true;
-  box.dataset.validation = "phone";
-}
-
-if (type === 'address') {
-  box.innerText = "Address";
-  box.contentEditable = true;
-  box.style.minWidth = '220px';
-}
-
-if (type === 'checkbox') {
-  box.innerText = "☐";
-  box.style.width = "14px";
-  box.style.height = "14px";
-  box.style.padding = "0";
-}
-
-
-if (type === 'consent') {
-  box.innerText = "☐";
-  box.style.width = "14px";
-  box.style.height = "14px";
-  box.style.padding = "0";
-  box.dataset.required = "true";
-}
-
-
-if (type === 'digit') {
-  box.innerText = "";
-  box.contentEditable = true;
-
-  box.dataset.maxlength = "1";
-  box.dataset.validation = "digit";
-
-  box.style.width = "16px";
-  box.style.height = "18px";
-  box.style.padding = "0";
-  box.style.textAlign = "center";
-  box.style.fontSize = "14px";
-  box.style.lineHeight = "18px";
-}
-
-/* EIN FIELD */
-if (type === 'ein') {
-  box.innerText = "XX-XXXXXXX";
-  box.contentEditable = true;
-  box.dataset.validation = "ein";
-
-  box.style.minWidth = "140px";
-  box.style.textAlign = "center";
-}
 
 
 
@@ -1993,30 +1985,6 @@ const driveUrl = templateRow?.pdf_url || TEMPLATE_PDFS[template];
 
     await renderPDF(blobUrl);
 
-// 🔥 RESTORE TEMPLATE FIELDS FROM SUPABASE
-document.querySelectorAll(".signature-box").forEach(el => el.remove());
-fieldList = [];
-
-if (Array.isArray(templateRow.fields)) {
-  for (const field of templateRow.fields) {
-    const pageEl = document.querySelector(
-      `.page-container[data-page="${field.page}"]`
-    );
-    if (!pageEl) continue;
-
-    const box = createSignatureBox(field.type);
-
-    box.style.left = (field.xPct * 100) + "%";
-    box.style.top = (field.yPct * 100) + "%";
-    box.style.width = (field.wPct * 100) + "%";
-    box.style.height = (field.hPct * 100) + "%";
-
-    pageEl.appendChild(box);
-
-    box.__field = field;
-    fieldList.push(field);
-  }
-}
 
 
 // 🔥 RESTORE TEMPLATE FIELDS FROM DB
@@ -2143,3 +2111,4 @@ updateSignerVisibility();
 </body>
 
 </html>
+
