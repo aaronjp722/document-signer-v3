@@ -588,8 +588,9 @@ select option {
   <!-- NUMERIC -->
   <button type="button" class="tool-btn" onclick="setFieldType('digit', this)">1-Digit</button>
   <button type="button" class="tool-btn" onclick="createSSNBoxes()">SSN</button>
-
+  <button type="button" class="tool-btn" onclick="setFieldType('ein', this)">EIN</button>
   <button type="button" class="tool-btn" onclick="setFieldType('number', this)">Number</button>
+
 
 <!-- SIGNER SELECTOR -->
 <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;">
@@ -891,18 +892,25 @@ box.addEventListener('click', (e) => {
 });
 
 box.addEventListener("input", () => {
+
+  /* SINGLE DIGIT */
   if (box.dataset.validation === "digit") {
     box.innerText = box.innerText.replace(/[^0-9]/g, "").slice(0, 1);
   }
-});
 
+  /* EIN AUTO-FORMAT */
+  if (box.dataset.validation === "ein") {
+    let value = box.innerText.replace(/\D/g, "");
 
-// limit typing to 1 digit
-box.addEventListener("input", () => {
-  if (box.dataset.validation === "digit") {
-    box.innerText = box.innerText.replace(/[^0-9]/g, "").slice(0, 1);
+    if (value.length > 2) {
+      value = value.slice(0, 2) + "-" + value.slice(2, 9);
+    }
+
+    box.innerText = value.slice(0, 10);
   }
+
 });
+
 
 /* =========================================
    SSN AUTO BOX GENERATOR (W-9 PRECISION)
@@ -1050,6 +1058,15 @@ if (type === 'digit') {
   box.style.lineHeight = "18px";
 }
 
+/* EIN FIELD */
+if (type === 'ein') {
+  box.innerText = "XX-XXXXXXX";
+  box.contentEditable = true;
+  box.dataset.validation = "ein";
+
+  box.style.minWidth = "140px";
+  box.style.textAlign = "center";
+}
 
 
 
@@ -2124,4 +2141,5 @@ updateSignerVisibility();
 </script>
 
 </body>
+
 </html>
