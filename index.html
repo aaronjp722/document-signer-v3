@@ -1451,15 +1451,6 @@ if (fieldList.length) {
 }
 
 
-const edgeFields = fieldList.map(f => ({
-  signer_order: f.signer,
-  field_type: f.type,
-  page: f.page,
-  x_pct: f.xPct,
-  y_pct: f.yPct,
-  w_pct: f.wPct,
-  h_pct: f.hPct
-}));
 
 // ==============================
 // FLEXIBLE W-9 TITLE DETECTION
@@ -1529,63 +1520,64 @@ await fetch(
    /* =========================
    3️⃣ TRIGGER MAKE EMAIL (FLAT PAYLOAD)
 ========================= */
+const safeFields = fieldList.filter(f => !f.secure);
+
 await fetch(MAKE_WEBHOOK_URL, {
   method: "POST",
   headers: { "Content-Type": "application/json" },
- body: JSON.stringify({
-  doc_id: docId,
-  title:
-    document.getElementById("document_title")?.value ||
-    generateDocumentTitle(),
+  body: JSON.stringify({
+    doc_id: docId,
+    title:
+      document.getElementById("document_title")?.value ||
+      generateDocumentTitle(),
 
-  template: basePayload.template,
-  pdf_url: basePayload.pdf_url,
-  custom_email: basePayload.custom_email,
-  jira_code: basePayload.jira,
+    template: basePayload.template,
+    pdf_url: basePayload.pdf_url,
+    custom_email: basePayload.custom_email,
+    jira_code: basePayload.jira,
 
-  // =============================
-  // FLAT SIGNERS
-  // =============================
-  signer1_name: signerRows[0]?.name || null,
-  signer1_email: signerRows[0]?.email || null,
-  signer1_token: signerRows[0]?.token || null,
+    // =============================
+    // FLAT SIGNERS
+    // =============================
+    signer1_name: signerRows[0]?.name || null,
+    signer1_email: signerRows[0]?.email || null,
+    signer1_token: signerRows[0]?.token || null,
 
-  signer2_name: signerRows[1]?.name || null,
-  signer2_email: signerRows[1]?.email || null,
-  signer2_token: signerRows[1]?.token || null,
+    signer2_name: signerRows[1]?.name || null,
+    signer2_email: signerRows[1]?.email || null,
+    signer2_token: signerRows[1]?.token || null,
 
-  signer3_name: signerRows[2]?.name || null,
-  signer3_email: signerRows[2]?.email || null,
-  signer3_token: signerRows[2]?.token || null,
+    signer3_name: signerRows[2]?.name || null,
+    signer3_email: signerRows[2]?.email || null,
+    signer3_token: signerRows[2]?.token || null,
 
-  signer4_name: signerRows[3]?.name || null,
-  signer4_email: signerRows[3]?.email || null,
-  signer4_token: signerRows[3]?.token || null,
-     const safeFields = fieldList.filter(f => !f.secure);
+    signer4_name: signerRows[3]?.name || null,
+    signer4_email: signerRows[3]?.email || null,
+    signer4_token: signerRows[3]?.token || null,
 
-  // =============================
-  // FLAT FIELD EXPORT (MAX 50 SAFE)
-  // =============================
-  field_1: fieldList[0]?.type || null,
-  field_1_signer: fieldList[0]?.signer || null,
-  field_1_page: fieldList[0]?.page || null,
-  field_1_x: fieldList[0]?.xPct || null,
-  field_1_y: fieldList[0]?.yPct || null,
-  field_1_w: fieldList[0]?.wPct || null,
-  field_1_h: fieldList[0]?.hPct || null,
+    // =============================
+    // FLAT FIELD EXPORT (SAFE)
+    // =============================
+    field_1: safeFields[0]?.type || null,
+    field_1_signer: safeFields[0]?.signer || null,
+    field_1_page: safeFields[0]?.page || null,
+    field_1_x: safeFields[0]?.xPct || null,
+    field_1_y: safeFields[0]?.yPct || null,
+    field_1_w: safeFields[0]?.wPct || null,
+    field_1_h: safeFields[0]?.hPct || null,
 
-  field_2: fieldList[1]?.type || null,
-  field_2_signer: fieldList[1]?.signer || null,
-  field_2_page: fieldList[1]?.page || null,
-  field_2_x: fieldList[1]?.xPct || null,
-  field_2_y: fieldList[1]?.yPct || null,
-  field_2_w: fieldList[1]?.wPct || null,
-  field_2_h: fieldList[1]?.hPct || null,
+    field_2: safeFields[1]?.type || null,
+    field_2_signer: safeFields[1]?.signer || null,
+    field_2_page: safeFields[1]?.page || null,
+    field_2_x: safeFields[1]?.xPct || null,
+    field_2_y: safeFields[1]?.yPct || null,
+    field_2_w: safeFields[1]?.wPct || null,
+    field_2_h: safeFields[1]?.hPct || null,
 
-  field_count: fieldList.length
-})
-
+    field_count: safeFields.length
+  })
 });
+
 
 alert("Document sent successfully for signature.");
 
@@ -2087,15 +2079,16 @@ document.getElementById("delete-template-btn")?.addEventListener("click", async 
 // ================================
 // INITIAL PAGE LOAD
 // ================================
-loadTemplatesFromDB();
-updateSignerVisibility();
 
+updateSignerVisibility();
+loadTemplatesFromDB();
 
 </script>
 
 </body>
 
 </html>
+
 
 
 
